@@ -324,6 +324,6 @@ for tech_name, tech_query in TECH_QUERIES.items():
 
 df = pd.DataFrame(results)
 
-df.to_excel("50개기술_220개국가_단독논문수.xlsx", index=False)
+df.to_excel("50개기술_220개국가_발행논문수_이차전지.xlsx", index=False)
 
 print("엑셀 파일 생성 완료")
