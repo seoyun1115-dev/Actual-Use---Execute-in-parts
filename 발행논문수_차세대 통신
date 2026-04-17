@@ -1,0 +1,332 @@
+!pip install requests pandas openpyxl
+
+import requests
+import pandas as pd
+import time
+
+# -----------------------------
+# 1. 기본 설정
+# -----------------------------
+
+LENS_API_URL = "https://api.lens.org/scholarly/search"
+
+API_TOKEN = "jQnrFcskoKSSA2nJzFcqt28w8As1OXwh73THKh77O9ETNppuqBFI"
+
+HEADERS = {
+    "Authorization": f"Bearer {API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+COUNTRIES = {
+    "AF": "Afghanistan",
+"AX": "Åland Islands",
+"AL": "Albania",
+"DZ": "Algeria",
+"AS": "American Samoa",
+"AD": "Andorra",
+"AO": "Angola",
+"AG": "Antigua and Barbuda",
+"AR": "Argentina",
+"AM": "Armenia",
+"AW": "Aruba",
+"AU": "Australia",
+"AT": "Austria",
+"AZ": "Azerbaijan",
+"BS": "Bahamas",
+"BH": "Bahrain",
+"BD": "Bangladesh",
+"BB": "Barbados",
+"BY": "Belarus",
+"BE": "Belgium",
+"BZ": "Belize",
+"BJ": "Benin",
+"BM": "Bermuda",
+"BT": "Bhutan",
+"BO": "Bolivia",
+"BA": "Bosnia and Herzegovina",
+"BW": "Botswana",
+"BR": "Brazil",
+"BN": "Brunei Darussalam",
+"BG": "Bulgaria",
+"BF": "Burkina Faso",
+"BI": "Burundi",
+"KH": "Cambodia",
+"CM": "Cameroon",
+"CA": "Canada",
+"KY": "Cayman Islands",
+"CF": "Central African Republic",
+"TD": "Chad",
+"CL": "Chile",
+"CN": "China",
+"CO": "Colombia",
+"CG": "Congo",
+"CD": "Congo, The Democratic Republic Of The",
+"CK": "Cook Islands",
+"CR": "Costa Rica",
+"CI": "Côte D'Ivoire",
+"HR": "Croatia",
+"CU": "Cuba",
+"CW": "Curaçao",
+"CY": "Cyprus",
+"CZ": "Czech Republic",
+"DK": "Denmark",
+"DJ": "Djibouti",
+"DM": "Dominica",
+"DO": "Dominican Republic",
+"EC": "Ecuador",
+"EG": "Egypt",
+"SV": "El Salvador",
+"GQ": "Equatorial Guinea",
+"ER": "Eritrea",
+"EE": "Estonia",
+"ET": "Ethiopia",
+"FO": "Faroe Islands",
+"FJ": "Fiji",
+"FI": "Finland",
+"FR": "France",
+"GF": "French Guiana",
+"PF": "French Polynesia",
+"GA": "Gabon",
+"GM": "Gambia",
+"GE": "Georgia",
+"DE": "Germany",
+"GH": "Ghana",
+"GI": "Gibraltar",
+"GR": "Greece",
+"GL": "Greenland",
+"GD": "Grenada",
+"GP": "Guadeloupe",
+"GU": "Guam",
+"GT": "Guatemala",
+"GN": "Guinea",
+"GW": "Guinea-Bissau",
+"GY": "Guyana",
+"HT": "Haiti",
+"HN": "Honduras",
+"HK": "Hong Kong",
+"HU": "Hungary",
+"IS": "Iceland",
+"IN": "India",
+"ID": "Indonesia",
+"IR": "Iran",
+"IQ": "Iraq",
+"IE": "Ireland",
+"IM": "Isle of Man",
+"IL": "Israel",
+"IT": "Italy",
+"JM": "Jamaica",
+"JP": "Japan",
+"JE": "Jersey",
+"JO": "Jordan",
+"KZ": "Kazakhstan",
+"KE": "Kenya",
+"KP": "Korea, Democratic People's Republic Of",
+"KR": "Korea, Republic of",
+"KW": "Kuwait",
+"KG": "Kyrgyzstan",
+"LA": "Laos",
+"LV": "Latvia",
+"LB": "Lebanon",
+"LS": "Lesotho",
+"LR": "Liberia",
+"LY": "Libya",
+"LI": "Liechtenstein",
+"LT": "Lithuania",
+"LU": "Luxembourg",
+"MG": "Madagascar",
+"MW": "Malawi",
+"MY": "Malaysia",
+"MV": "Maldives",
+"ML": "Mali",
+"MT": "Malta",
+"MQ": "Martinique",
+"MR": "Mauritania",
+"MU": "Mauritius",
+"MX": "Mexico",
+"FM": "Micronesia, Federated States Of",
+"MD": "Moldova",
+"MC": "Monaco",
+"MN": "Mongolia",
+"ME": "Montenegro",
+"MA": "Morocco",
+"MZ": "Mozambique",
+"MM": "Myanmar",
+"NP": "Nepal",
+"NL": "Netherlands",
+"NC": "New Caledonia",
+"NZ": "New Zealand",
+"NI": "Nicaragua",
+"NE": "Niger",
+"NG": "Nigeria",
+"MP": "Northern Mariana Islands",
+"NO": "Norway",
+"OM": "Oman",
+"PK": "Pakistan",
+"PW": "Palau",
+"PA": "Panama",
+"PG": "Papua New Guinea",
+"PY": "Paraguay",
+"PE": "Peru",
+"PH": "Philippines",
+"PL": "Poland",
+"PT": "Portugal",
+"PR": "Puerto Rico",
+"QA": "Qatar",
+"RO": "Romania",
+"RW": "Rwanda",
+"KN": "Saint Kitts And Nevis",
+"LC": "Saint Lucia",
+"VC": "Saint Vincent And The Grenadines",
+"WS": "Samoa",
+"SM": "San Marino",
+"ST": "Sao Tome and Principe",
+"SA": "Saudi Arabia",
+"SN": "Senegal",
+"RS": "Serbia",
+"SC": "Seychelles",
+"SL": "Sierra Leone",
+"SG": "Singapore",
+"SK": "Slovakia",
+"SI": "Slovenia",
+"SB": "Solomon Islands",
+"SO": "Somalia",
+"ZA": "South Africa",
+"SS": "South Sudan",
+"ES": "Spain",
+"LK": "Sri Lanka",
+"SD": "Sudan",
+"SR": "Suriname",
+"SE": "Sweden",
+"CH": "Switzerland",
+"SY": "Syria",
+"TW": "Taiwan",
+"TJ": "Tajikistan",
+"TZ": "Tanzania",
+"TH": "Thailand",
+"TG": "Togo",
+"TO": "Tonga",
+"TT": "Trinidad and Tobago",
+"TN": "Tunisia",
+"TM": "Turkmenistan",
+"UG": "Uganda",
+"UA": "Ukraine",
+"AE": "United Arab Emirates",
+"GB": "United Kingdom",
+"US": "United States",
+"UY": "Uruguay",
+"UZ": "Uzbekistan",
+"VU": "Vanuatu",
+"VE": "Venezuela",
+"VN": "Viet Nam",
+"YE": "Yemen",
+"ZM": "Zambia",
+"ZW": "Zimbabwe"
+}
+
+# 여기에 50개 기술 쿼리 전부 넣으면 됨
+TECH_QUERIES = {
+     "5G 고도화(5G-Adv)": '''
+        publication_type: "journal article" AND year_published:[2021 TO 2025] AND ((5g-adv OR (5G advanced) OR (fifth generation advanced)) AND (5G-NR OR IMT-2020 OR communication OR wireless OR network OR broadband OR cellular))
+    '''  ,
+     "6G": '''
+        publication_type: "journal article" AND year_published:[2021 TO 2025] AND ((6G OR (sixth generation) OR IMT-2030) AND (communication OR wireless OR network OR broadband OR cellular))
+    '''  ,
+     "오픈랜(Open-RAN)": '''
+        publication_type: "journal article" AND year_published:[2021 TO 2025] AND ((ran OR (Radio Access Network)) AND (open OR virtualiz* OR cloud OR (Inter-node communication) OR O-RAN OR (lower layer split) OR (Near-Real Time RIC) OR (function split) OR Inter-Operability OR (Cloud RAN) OR (mobile virtual network operator)))
+    '''  ,
+     "고효율 5G·6G 통신부품": '''
+       publication_type: "journal article" AND year_published:[2021 TO 2025] AND ((5G OR (fifth generation) OR 6G OR (sixth generation) OR (optical communication)) AND (part OR equipment* OR antenna OR transceiver OR (Base station) OR Antenna) NOT (part (I OR II OR III OR IV OR V OR VI OR VII OR 1 OR 2 OR 3 OR 4 OR 5 OR 6 OR 7 OR 8 OR 9)))
+    '''  ,
+     "5G·6G 위성통신": '''
+        publication_type: "journal article" AND year_published:[2021 TO 2025] AND ((5G OR (fifth generation) OR 6G OR (sixth generation) OR (optical communication)) AND (part OR equipment*) AND ((RF antenna) OR transceiver OR (Base station) OR (Radio Access Network) OR (Modulation techniques) OR (Multiple-input multiple-output) OR MIMO OR (Network slicing)) NOT (part (I OR II OR III OR IV OR V OR VI OR VII OR 1 OR 2 OR 3 OR 4 OR 5 OR 6 OR 7 OR 8 OR 9)))
+    '''
+}
+
+# -----------------------------
+# 2. count 함수 (공통)
+# -----------------------------
+
+def get_count(query_string):
+
+    payload = {
+        "query": {
+            "query_string": {
+                "query": query_string
+            }
+        },
+        "size": 0
+    }
+
+    response = requests.post(LENS_API_URL, headers=HEADERS, json=payload)
+
+    if response.status_code != 200:
+        print("ERROR:", response.status_code, response.text)
+        return 0
+
+    return response.json().get("total", 0)
+
+
+# -----------------------------
+# 3. 완전 단독 논문 계산 함수
+# -----------------------------
+
+def get_solo_count(tech_query, country_code):
+
+    # 전체
+    total_query = f'''
+    {tech_query}
+    AND author.affiliation.address.country_code:{country_code}
+    '''
+
+    # 국제공동 (해당국 + 다른국가 1개 이상)
+    international_query = f'''
+    {tech_query}
+    AND author.affiliation.address.country_code:{country_code}
+    AND author.affiliation.address.country_code:*
+    AND NOT author.affiliation.address.country_code:{country_code}
+    '''
+
+    total = get_count(total_query)
+    time.sleep(3)   #10회/분 제한 보호
+
+    international = get_count(international_query)
+    time.sleep(3)
+
+    solo = total - international
+
+    return solo
+
+
+# -----------------------------
+# 4. 실행 루프
+# -----------------------------
+
+results = []
+
+for tech_name, tech_query in TECH_QUERIES.items():
+
+    print(f"\n▶ Processing Technology: {tech_name}")
+
+    for country_code, country_name in COUNTRIES.items():
+
+        print(f"   - {country_name} 단독 계산 중...")
+
+        solo_count = get_solo_count(tech_query, country_code)
+
+        results.append({
+            "Technology": tech_name,
+            "Country": country_name,
+            "Solo_Papers": solo_count
+        })
+
+        print(f"     → {solo_count}")
+
+# -----------------------------
+# 5. 엑셀 저장
+# -----------------------------
+
+df = pd.DataFrame(results)
+
+df.to_excel("50개기술_220개국가_발행논문수_차세대통신.xlsx", index=False)
+
+print("엑셀 파일 생성 완료")
